@@ -1,0 +1,4 @@
+.warning "This project builds with GNU make, redirecting"
+
+all:
+	gmake all
