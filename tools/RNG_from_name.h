@@ -1,23 +1,27 @@
 #ifndef RNG_from_name_h
 #define RNG_from_name_h
 
+#include <err.h>
+#include <errno.h>
+#include <unistd.h>
+
 namespace Special_RNGs {
 	template<typename Word>
 	class _stdin_reader {
-		static void read_failed() {
-			std::fprintf(stderr, "error reading standard input\n");
-			std::exit(0);
-		}
-		enum { BUFF_SIZE = 4096 / sizeof(Word) };
+		enum { BUFF_SIZE = (1024*1024) / sizeof(Word) };
 		Word *pos, *end;
 		bool ended;
 		Word buffer[BUFF_SIZE];
 		void refill() {
-			std::size_t n = std::fread(&buffer[0], sizeof(Word), BUFF_SIZE, stdin);
-			if (n < BUFF_SIZE) ended = true;
-			if (!n) read_failed();
+			ssize_t n;
+			do {
+				n = ::read(STDIN_FILENO, buffer, sizeof(buffer));
+			} while (n < 0 && errno == EINTR);
+			if (n == 0) ended = true;
+			if (n < 0) err(1, "reading stdin");
+			if (n % sizeof(Word) != 0) errx(1, "got mis-chunked input from stdin");
 			pos = &buffer[0];
-			end = &buffer[n];
+			end = &buffer[n / sizeof(Word)];
 		}
 	public:
 		_stdin_reader() : ended(false) { refill(); }
