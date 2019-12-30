@@ -17,6 +17,8 @@ TARGETS = $(LIB) $(addprefix $(BIN)/,$(BINS))
 INCLUDES = $(INC) $(TOOLS)
 LIBS = $(BIN)/libpracrand
 
+HDRS = $(wildcard $(ROOT)/**/*.h)
+
 CXX ?= c++
 CXXFLAGS += -g $(addprefix -I,$(INCLUDES)) -O2 -std=c++11 -pthread
 CXXFLAGS += -march=native
@@ -24,7 +26,10 @@ CXXFLAGS += -march=native
 CXXFLAGS += -Wall -Wno-unused-variable -Wno-unneeded-internal-declaration
 CXXFLAGS += -Wno-unused-local-typedef
 
-%.o: %.cpp
+# Not especially specific, but force rebuild if headers change.  Certainly some
+# headers have impact on some object files, and I have punted on mapping the
+# granularity out more specifically.
+%.o: %.cpp $(HDRS)
 	$(CXX) -o $@ $(CXXFLAGS) -c $<
 
 $(BIN)/%: $(TOOLS)/%.o $(LIB)
