@@ -31,3 +31,5 @@
 x64/
 Win32/
 /VisualC_net/.vs
+
+/bin
